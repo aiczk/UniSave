@@ -10,6 +10,7 @@ UniSave is an asset that allows you to easily save and load values.
 ### Installation
 
    - Import UniRx
+   - Import Utf8Json
 
 ### Intoroduction
 
