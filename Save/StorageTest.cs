@@ -2,10 +2,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Storage;
+using UniSave;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
-using Load = Storage.Load;
+using Load = UniSave.Load;
 
 public class StorageTest : MonoBehaviour
 {

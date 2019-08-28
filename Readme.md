@@ -38,10 +38,6 @@ var saveData = await Storage<Vector3>.LoadVector3ArrayAsync("FileName");
 await Storage<Vector3>.SaveArrayAsync(array,"FileName");
 ```
 
-### Todos
-
- - The encrypted string contains a newline character ( \n) that causes the data to disappear due to incorrect decryption.
-
 License
 ----
 

@@ -10,7 +10,7 @@ using Debug = UnityEngine.Debug;
 // ReSharper disable LoopCanBeConvertedToQuery
 // ReSharper disable ForCanBeConvertedToForeach
 
-namespace Storage
+namespace UniSave
 {
     public static partial class Storage<T> where T : struct
     {
@@ -53,7 +53,6 @@ namespace Storage
 
             await WriteAsync(encrypted, fileName, append);
         }
-
         private static void SaveArraySync(IReadOnlyList<T> array, string fileName, bool append = false)
         {
             var encryptedArray = new string[array.Count];
@@ -93,7 +92,7 @@ namespace Storage
 
             using (var stream = new StreamWriter($"{Pass}{fileName}",append))
             {
-                stream.Write(encrypt);
+                stream.Write($"{encrypt}ツ");
             }
         }
 
@@ -104,7 +103,7 @@ namespace Storage
 
             using (var stream = new StreamWriter($"{Pass}{fileName}",append,encoding))
             {
-                await stream.WriteAsync(encrypt);
+                await stream.WriteAsync($"{encrypt}ツ");
             }
         }
 
@@ -118,7 +117,7 @@ namespace Storage
                 for (var i = 0; i < encrypts.Count; i++)
                 {
                     var encrypt = encrypts[i];
-                    stream.WriteLine(encrypt);
+                    stream.WriteLine($"{encrypt}ツ");
                 }
             }
         }
@@ -133,7 +132,7 @@ namespace Storage
                 for (var i = 0; i < encrypts.Count; i++)
                 {
                     var encrypt = encrypts[i];
-                    await stream.WriteLineAsync(encrypt);
+                    await stream.WriteLineAsync($"{encrypt}ツ");
                 }
             }
         }
@@ -186,7 +185,9 @@ namespace Storage
             
             using (var sr = new StreamReader($"{Pass}{fileName}", encoding))
             {
-                var encrypted = await sr.ReadLineAsync();
+                var encryptedList = await ReadAllLine(sr);
+                var encrypted = encryptedList[0];
+                Debug.Log(encrypted);
                 var decrypted = DecryptBuilder(encrypted);
                 var deserialize = Deserialize(decrypted);
                 
@@ -203,11 +204,9 @@ namespace Storage
             
             using (var sr = new StreamReader($"{Pass}{fileName}", encoding))
             {
-                string encrypted;
-                while ((encrypted = await sr.ReadLineAsync()) != null)
+                foreach (var encrypted in await ReadAllLine(sr))
                 {
                     var decrypted = DecryptBuilder(encrypted);
-                    RemoveLineBreaks(ref decrypted);
                     var deserialize = Deserialize(decrypted);
                     dynamics.Add(deserialize);
                 }
@@ -359,6 +358,27 @@ namespace Storage
         {
             if (str.EndsWith("\n"))
                 str = str.Substring(0, str.Length - 2);
+        }
+
+        private static async UniTask<List<string>> ReadAllLine(TextReader sr)
+        {
+            var value = await sr.ReadToEndAsync();
+            var sentences = new List<string>();
+            int position;
+            var start = 0;
+
+            do
+            {
+                position = value.IndexOf('ツ', start);
+                
+                if (position < 0)
+                    continue;
+
+                sentences.Add(value.Substring(start, position - start).Trim());
+                start = position + 1;
+            } while (position > 0);
+
+            return sentences;
         }
         
         #endregion

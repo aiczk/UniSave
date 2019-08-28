@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UniRx.Async;
 
-namespace Storage
+namespace UniSave
 {
     public class StorageQueue<T> where T : struct
     {

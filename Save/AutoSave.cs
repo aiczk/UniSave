@@ -3,7 +3,7 @@ using UniRx;
 using UniRx.Async;
 using UnityEngine;
 
-namespace Storage
+namespace UniSave
 {
     [DisallowMultipleComponent]
     public class AutoSave : MonoBehaviour
