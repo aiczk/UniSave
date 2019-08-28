@@ -154,25 +154,27 @@ namespace UniSave
         {
             if(!IsFileExist(fileName))
                 throw new DirectoryNotFoundException();
-
-            var encryptTexts = File.ReadAllLines($"{Pass}{fileName}", encoding);
-            var dynamics = new dynamic[encryptTexts.Length];
-
-            for (var i = 0; i < encryptTexts.Length; i++)
-            {
-                ref var text = ref encryptTexts[i];
-                RemoveLineBreaks(ref text);
-            }
             
-            for (var i = 0; i < encryptTexts.Length; i++)
+            dynamic[] dynamics;
+            
+            using (var sr = new StreamReader($"{Pass}{fileName}",encoding))
             {
-                ref var encrypt = ref encryptTexts[i];
+                var encryptTexts = ReadAllLineSync(sr);
+                dynamics = new dynamic[encryptTexts.Length];
                 
-                if(encrypt.Length == 0)
-                    continue;
+                for (var i = 0; i < encryptTexts.Length; i++) 
+                    RemoveLineBreaks(ref encryptTexts[i]);
+
+                for (var i = 0; i < encryptTexts.Length; i++)
+                {
+                    var encrypt = encryptTexts[i];
                 
-                var decrypted = DecryptBuilder(encrypt);
-                dynamics[i] = Deserialize(decrypted);
+                    if(encrypt.Length == 0)
+                        continue;
+                
+                    var decrypted = DecryptBuilder(encrypt);
+                    dynamics[i] = Deserialize(decrypted);
+                }
             }
 
             return dynamics;
@@ -185,9 +187,8 @@ namespace UniSave
             
             using (var sr = new StreamReader($"{Pass}{fileName}", encoding))
             {
-                var encryptedList = await ReadAllLine(sr);
+                var encryptedList = await ReadAllLineAsync(sr);
                 var encrypted = encryptedList[0];
-                Debug.Log(encrypted);
                 var decrypted = DecryptBuilder(encrypted);
                 var deserialize = Deserialize(decrypted);
                 
@@ -204,7 +205,7 @@ namespace UniSave
             
             using (var sr = new StreamReader($"{Pass}{fileName}", encoding))
             {
-                foreach (var encrypted in await ReadAllLine(sr))
+                foreach (var encrypted in await ReadAllLineAsync(sr))
                 {
                     var decrypted = DecryptBuilder(encrypted);
                     var deserialize = Deserialize(decrypted);
@@ -360,7 +361,28 @@ namespace UniSave
                 str = str.Substring(0, str.Length - 2);
         }
 
-        private static async UniTask<List<string>> ReadAllLine(TextReader sr)
+        private static string[] ReadAllLineSync(TextReader sr)
+        {
+            var value = sr.ReadToEnd();
+            var sentences = new List<string>();
+            int position;
+            var start = 0;
+
+            do
+            {
+                position = value.IndexOf('ツ', start);
+                
+                if (position < 0)
+                    continue;
+
+                sentences.Add(value.Substring(start, position - start).Trim());
+                start = position + 1;
+            } while (position > 0);
+
+            return sentences.ToArray();
+        }
+        
+        private static async UniTask<string[]> ReadAllLineAsync(TextReader sr)
         {
             var value = await sr.ReadToEndAsync();
             var sentences = new List<string>();
@@ -378,7 +400,7 @@ namespace UniSave
                 start = position + 1;
             } while (position > 0);
 
-            return sentences;
+            return sentences.ToArray();
         }
         
         #endregion
