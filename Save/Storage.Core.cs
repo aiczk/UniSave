@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.AccessControl;
 using System.Security.Cryptography;
 using System.Text;
 using UniRx.Async;
@@ -17,8 +18,9 @@ namespace UniSave
         public static string FolderName { get; set; } = Application.productName;
         public static string PassWord { get; set; } = "projekt";
         
-        private static string Pass => $"{Application.dataPath}/{FolderName}/";
+        private static  string Pass => $"{Application.dataPath}/{FolderName}/";
         private static Encoding encoding => Encoding.Unicode;
+        private static char End => 'ツ';
         
         #region Public Method
         
@@ -141,13 +143,16 @@ namespace UniSave
         {
             if (!IsFileExist(fileName)) 
                 throw new DirectoryNotFoundException();
-
-            var encryptText = File.ReadAllText($"{Pass}{fileName}");
             
-            var decrypted = DecryptBuilder(encryptText);
-            var deserialize = Deserialize(decrypted);
-            
-            return deserialize;
+            using (var sr = new StreamReader($"{Pass}{fileName}", encoding))
+            {
+                var encryptedArray = ReadAllLineSync(sr);
+                var encrypted = encryptedArray[0];
+                var decrypted = DecryptBuilder(encrypted);
+                var deserialize = Deserialize(decrypted);
+                
+                return deserialize;
+            }
         }
 
         private static dynamic[] LoadArraySync(string fileName)
@@ -249,10 +254,8 @@ namespace UniSave
             if(pass.Count == 0)
                 return;
 
-            foreach (var file in pass)
-            {
+            foreach (var file in pass) 
                 DeleteSync(file);
-            }
         }
         
         public static void Clear(string fileName)
@@ -271,10 +274,8 @@ namespace UniSave
             CreateOrIgnoreDirectory();
             CreateOrIgnoreFile(fileName);
             
-            using (var stream = new StreamWriter($"{Pass}{fileName}",false,encoding))
-            {
+            using (var stream = new StreamWriter($"{Pass}{fileName}",false,encoding)) 
                 await stream.WriteAsync("");
-            }
         }
 
         #endregion
@@ -314,11 +315,9 @@ namespace UniSave
             var length = bytes.Count;
             var array = new char[length];
             
-            for (var i = 0; i < length; i++)
-            {
+            for (var i = 0; i < length; i++) 
                 array[i] = (char) bytes[i];
-            }
-            
+
             return new string(array);
         }
         
@@ -327,11 +326,9 @@ namespace UniSave
             var length = encrypt.Length;
             var array = new byte[length];
 
-            for (var i = 0; i < length; i++)
-            {
+            for (var i = 0; i < length; i++) 
                 array[i] = (byte) encrypt[i];
-            }
-            
+
             return array;
         }
         
@@ -370,7 +367,7 @@ namespace UniSave
 
             do
             {
-                position = value.IndexOf('ツ', start);
+                position = value.IndexOf(End, start);
                 
                 if (position < 0)
                     continue;
@@ -391,7 +388,7 @@ namespace UniSave
 
             do
             {
-                position = value.IndexOf('ツ', start);
+                position = value.IndexOf(End, start);
                 
                 if (position < 0)
                     continue;

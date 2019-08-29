@@ -6,7 +6,7 @@ using UnityEngine;
 namespace UniSave
 {
     [DisallowMultipleComponent]
-    public class AutoSave : MonoBehaviour
+    public class AutoSave3D : MonoBehaviour
     {
         [SerializeField] private string fileName = default, positionDiff = "position", rotationDiff = "rotation";
         [SerializeField] private bool enableAsync = false;
@@ -36,7 +36,7 @@ namespace UniSave
         
         private async UniTask OnApplicationQuit()
         {
-            if(fileName.Length == 0 || string.IsNullOrWhiteSpace(fileName) || positionDiff.Length == 0 || rotationDiff.Length == 0)
+            if(fileName.Length == 0 || positionDiff.Length == 0 || rotationDiff.Length == 0)
                 throw new NullReferenceException("No file name is entered!");
             
             if(positionDiff == rotationDiff)
