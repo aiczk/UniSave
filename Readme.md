@@ -16,25 +16,25 @@ UniSave is an asset that allows you to easily save and load values.
 
 Synchronous load/save.
 ```cs
-var saveData = Storage<Vector3>.LoadVector3("FileName");
+var saveData = Storage<Vector3>.Load("FileName");
 Storage<Vector3>.Save(Vector3.Zero,"FileName");
 ```
 
 Synchronous load/save arrays.
 ```cs
-var saveData = Storage<Vector3>.LoadVector3Array("FileName");
+var saveData = Storage<Vector3>.LoadArray("FileName");
 Storage<Vector3>.SaveArray(array,"FileName");
 ```
 
 Asynchronous load/save.
 ```cs
-var saveData = await Storage<Vector3>.LoadVector3Async("FileName");
+var saveData = await Storage<Vector3>.Load("FileName");
 await Storage<Vector3>.SaveAsync(Vector3.Zero,"FileName");
 ```
 
 Asynchronous array load/save.
 ```cs
-var saveData = await Storage<Vector3>.LoadVector3ArrayAsync("FileName");
+var saveData = await Storage<Vector3>.LoadArrayAsync("FileName");
 await Storage<Vector3>.SaveArrayAsync(array,"FileName");
 ```
 

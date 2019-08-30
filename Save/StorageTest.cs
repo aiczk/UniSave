@@ -84,36 +84,6 @@ public class StorageTest : MonoBehaviour
         stopWatch.Stop();
         Debug.Log($"SaveQueueAsync :{stopWatch.Elapsed.ToString()}");
         
-        if (Storage<Load>.IsFileExist("FILE"))
-        {
-            stopWatch.Reset();
-            stopWatch.Start();
-            var load = Storage<Quaternion>.LoadQuaternion("FILE");
-            stopWatch.Stop();
-            Debug.Log($"Load :{stopWatch.Elapsed.ToString()}");
-            
-            stopWatch.Reset();
-            stopWatch.Start();
-            var data = await Storage<Quaternion>.LoadQuaternionAsync("FILE");
-            stopWatch.Stop();
-            Debug.Log($"LoadAsync :{stopWatch.Elapsed.ToString()}");
-        }
-        
-        if (Storage<Load>.IsFileExist("Array"))
-        {
-            stopWatch.Reset();
-            stopWatch.Start();
-            var load = Storage<Load>.LoadVector3Array("Array");
-            stopWatch.Stop();
-            Debug.Log($"LoadArray :{stopWatch.Elapsed.ToString()}");
-            
-            stopWatch.Reset();
-            stopWatch.Start();
-            var data = await Storage<Load>.LoadVector3ArrayAsync("Array");
-            stopWatch.Stop();
-            Debug.Log($"LoadArrayAsync :{stopWatch.Elapsed.ToString()}");
-        }
-        
         //Storage<Load>.DeleteAll();
     }
 

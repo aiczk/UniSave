@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Security.AccessControl;
 using System.Security.Cryptography;
 using System.Text;
@@ -33,10 +34,10 @@ namespace UniSave
         public static void Delete(string fileName) => DeleteSync(fileName);
         public static void DeleteAll() => DeleteAllSync();
         
-        public static dynamic DirectlyLoad(string fileName) => LoadSync(fileName);
-        public static dynamic[] DirectlyLoadArray(string fileName) => LoadArraySync(fileName);
-        public static UniTask<dynamic> DirectlyLoadAsync(string fileName) => LoadAsync(fileName);
-        public static UniTask<IReadOnlyList<dynamic>> DirectlyLoadArrayAsync(string fileName) => LoadArrayAsync(fileName);
+        public static T Load(string fileName) => LoadSync(fileName);
+        public static T[] LoadArray(string fileName) => LoadArraySync(fileName);
+        public static UniTask<T> LoadAsync(string fileName) => LoadAsynchronous(fileName);
+        public static UniTask<IReadOnlyList<T>> LoadArrayAsync(string fileName) => LoadArrayAsynchronous(fileName);
         
         #endregion
         
@@ -138,8 +139,8 @@ namespace UniSave
                 }
             }
         }
-
-        private static dynamic LoadSync(string fileName)
+        
+        private static T LoadSync(string fileName)
         {
             if (!IsFileExist(fileName)) 
                 throw new DirectoryNotFoundException();
@@ -147,7 +148,7 @@ namespace UniSave
             using (var sr = new StreamReader($"{Pass}{fileName}", encoding))
             {
                 var encryptedArray = ReadAllLineSync(sr);
-                var encrypted = encryptedArray[0];
+                var encrypted = encryptedArray.First();
                 var decrypted = DecryptBuilder(encrypted);
                 var deserialize = Deserialize(decrypted);
                 
@@ -155,17 +156,17 @@ namespace UniSave
             }
         }
 
-        private static dynamic[] LoadArraySync(string fileName)
+        private static T[] LoadArraySync(string fileName)
         {
             if(!IsFileExist(fileName))
                 throw new DirectoryNotFoundException();
             
-            dynamic[] dynamics;
+            T[] dynamics;
             
             using (var sr = new StreamReader($"{Pass}{fileName}",encoding))
             {
                 var encryptTexts = ReadAllLineSync(sr);
-                dynamics = new dynamic[encryptTexts.Length];
+                dynamics = new T[encryptTexts.Length];
                 
                 for (var i = 0; i < encryptTexts.Length; i++) 
                     RemoveLineBreaks(ref encryptTexts[i]);
@@ -185,7 +186,7 @@ namespace UniSave
             return dynamics;
         }
 
-        private static async UniTask<dynamic> LoadAsync(string fileName)
+        private static async UniTask<T> LoadAsynchronous(string fileName)
         {
             if(!IsFileExist(fileName))
                 throw new DirectoryNotFoundException();
@@ -201,12 +202,12 @@ namespace UniSave
             }
         }
         
-        private static async UniTask<IReadOnlyList<dynamic>> LoadArrayAsync(string fileName)
+        private static async UniTask<IReadOnlyList<T>> LoadArrayAsynchronous(string fileName)
         {
             if(!IsFileExist(fileName))
                 throw new DirectoryNotFoundException();
             
-            var dynamics = new List<dynamic>();
+            var arrayAsync = new List<T>();
             
             using (var sr = new StreamReader($"{Pass}{fileName}", encoding))
             {
@@ -214,11 +215,11 @@ namespace UniSave
                 {
                     var decrypted = DecryptBuilder(encrypted);
                     var deserialize = Deserialize(decrypted);
-                    dynamics.Add(deserialize);
+                    arrayAsync.Add(deserialize);
                 }
             }
             
-            return dynamics;
+            return arrayAsync;
         }
         
         private static void DeleteSync(string fileName)
@@ -290,14 +291,13 @@ namespace UniSave
 
             return encrypted;
         }
-        
-        private static string DecryptBuilder(string encryptText)
+       
+        private static byte[] DecryptBuilder(string encryptText)
         {
             var encryptBytes = StringToBytes(encryptText);
             var decryptBytes = DecryptBytes(encryptBytes);
-            var decrypted = ByteToString(decryptBytes);
 
-            return decrypted;
+            return decryptBytes;
         }
         
         #endregion
@@ -308,7 +308,7 @@ namespace UniSave
         public static bool IsDirectoryExist() => Directory.Exists(Pass);
 
         private static byte[] Serialize(T type) => JsonSerializer.Serialize(type);
-        private static dynamic Deserialize(string json) => JsonSerializer.Deserialize<dynamic>(json);
+        private static T Deserialize(byte[] bytes) => JsonSerializer.Deserialize<T>(bytes);
 
         private static string ByteToString(IReadOnlyList<byte> bytes)
         {
