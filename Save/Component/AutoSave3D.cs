@@ -18,20 +18,13 @@ namespace UniSave
             
             if (enableAsync)
             {
-                if (Storage<Load>.IsFileExist(pos)) 
-                    transform.position = await Storage<Vector3>.LoadAsync(pos);
-
-                if (Storage<Load>.IsFileExist(rot))
-                    transform.rotation = await Storage<Quaternion>.LoadAsync(rot);
-                
+                transform.position = await Storage<Vector3>.GetOrDefaultAsync(pos);
+                transform.rotation = await Storage<Quaternion>.GetOrDefaultAsync(rot);
                 return;
             }
             
-            if (Storage<Load>.IsFileExist(pos)) 
-                transform.position = Storage<Vector3>.Load(pos);
-
-            if (Storage<Load>.IsFileExist(rot))
-                transform.rotation = Storage<Quaternion>.Load(rot);
+            transform.position = Storage<Vector3>.GetOrDefault(pos);
+            transform.rotation = Storage<Quaternion>.GetOrDefault(rot);
         }
         
         private async UniTask OnApplicationQuit()

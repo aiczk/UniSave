@@ -15,15 +15,11 @@ namespace UniSave
         {            
             if (enableAsync)
             {
-                if (Storage<Load>.IsFileExist(fileName)) 
-                    transform.position = await Storage<Vector3>.LoadAsync(fileName);                
+                transform.position = await Storage<Vector3>.GetOrDefaultAsync(fileName);           
                 return;
             }
             
-            if (Storage<Load>.IsFileExist(fileName)) 
-                transform.position = Storage<Vector3>.Load(fileName);
-
-            await Observable.Return(1);
+            transform.position = Storage<Vector3>.GetOrDefault(fileName);
         }
         
         private async UniTask OnApplicationQuit()

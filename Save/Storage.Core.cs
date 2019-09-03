@@ -14,7 +14,7 @@ using Debug = UnityEngine.Debug;
 
 namespace UniSave
 {
-    public static partial class Storage<T> where T : struct
+    public static class Storage<T> where T : struct
     {
         public static string FolderName { get; set; } = Application.productName;
         public static string PassWord { get; set; } = "projekt";
@@ -399,6 +399,18 @@ namespace UniSave
 
             return sentences.ToArray();
         }
+
+        public static T GetOrDefault(string FileName) =>
+            IsFileExist(FileName) ? Load(FileName) : default;
+        
+        public static T[] GetOrDefault(string FileName,int initializeCount) => 
+            IsFileExist(FileName) ? LoadArray(FileName) : new T[initializeCount];
+        
+        public static async UniTask<T> GetOrDefaultAsync(string FileName)=>
+            IsFileExist(FileName) ? await LoadAsync(FileName) : default;
+
+        public static async UniTask<IReadOnlyList<T>> GetOrDefaultAsync(string FileName,int initializeCount) => 
+            IsFileExist(FileName) ? await LoadArrayAsync(FileName) : new T[initializeCount];
         
         #endregion
         
