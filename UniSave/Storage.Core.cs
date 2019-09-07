@@ -1,27 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Security.AccessControl;
 using System.Security.Cryptography;
 using System.Text;
 using UniRx.Async;
 using UnityEngine;
 using Utf8Json;
-using Debug = UnityEngine.Debug;
 // ReSharper disable LoopCanBeConvertedToQuery
 // ReSharper disable ForCanBeConvertedToForeach
+// ReSharper disable once CheckNamespace
 
 namespace UniSave
 {
     public static class Storage<T> where T : struct
     {
-        public static string FolderName { get; set; } = Application.productName;
-        public static string PassWord { get; set; } = "projekt";
-        
-        private static  string Pass => $"{Application.dataPath}/{FolderName}/";
-        private static Encoding encoding => Encoding.Unicode;
-        private static char End => 'ツ';
+        private static string PassWord => "projekt";
+        private static string Pass => $"{Application.dataPath}/{Application.productName}/";
+        private static Encoding Encoding => Encoding.Unicode;
+        private static string End => "=";
         
         #region Public Method
         
@@ -95,7 +92,7 @@ namespace UniSave
 
             using (var stream = new StreamWriter($"{Pass}{fileName}",append))
             {
-                stream.Write($"{encrypt}ツ");
+                stream.Write($"{encrypt}{End}");
             }
         }
 
@@ -104,9 +101,9 @@ namespace UniSave
             CreateOrIgnoreDirectory();
             CreateOrIgnoreFile(fileName);
 
-            using (var stream = new StreamWriter($"{Pass}{fileName}",append,encoding))
+            using (var stream = new StreamWriter($"{Pass}{fileName}",append,Encoding))
             {
-                await stream.WriteAsync($"{encrypt}ツ");
+                await stream.WriteAsync($"{encrypt}{End}");
             }
         }
 
@@ -115,12 +112,12 @@ namespace UniSave
             CreateOrIgnoreDirectory();
             CreateOrIgnoreFile(fileName);
             
-            using (var stream = new StreamWriter($"{Pass}{fileName}",append,encoding))
+            using (var stream = new StreamWriter($"{Pass}{fileName}",append,Encoding))
             {
                 for (var i = 0; i < encrypts.Count; i++)
                 {
                     var encrypt = encrypts[i];
-                    stream.WriteLine($"{encrypt}ツ");
+                    stream.WriteLine($"{encrypt}{End}");
                 }
             }
         }
@@ -130,12 +127,12 @@ namespace UniSave
             CreateOrIgnoreDirectory();
             CreateOrIgnoreFile(fileName);
             
-            using (var stream = new StreamWriter($"{Pass}{fileName}",append,encoding))
+            using (var stream = new StreamWriter($"{Pass}{fileName}",append,Encoding))
             {
                 for (var i = 0; i < encrypts.Count; i++)
                 {
                     var encrypt = encrypts[i];
-                    await stream.WriteLineAsync($"{encrypt}ツ");
+                    await stream.WriteLineAsync($"{encrypt}{End}");
                 }
             }
         }
@@ -145,10 +142,10 @@ namespace UniSave
             if (!IsFileExist(fileName)) 
                 throw new DirectoryNotFoundException();
             
-            using (var sr = new StreamReader($"{Pass}{fileName}", encoding))
+            using (var sr = new StreamReader($"{Pass}{fileName}", Encoding))
             {
                 var encryptedArray = ReadAllLineSync(sr);
-                var encrypted = encryptedArray.First();
+                var encrypted = encryptedArray[0];
                 var decrypted = DecryptBuilder(encrypted);
                 var deserialize = Deserialize(decrypted);
                 
@@ -161,29 +158,26 @@ namespace UniSave
             if(!IsFileExist(fileName))
                 throw new DirectoryNotFoundException();
             
-            T[] dynamics;
+            T[] arraySync;
             
-            using (var sr = new StreamReader($"{Pass}{fileName}",encoding))
+            using (var sr = new StreamReader($"{Pass}{fileName}",Encoding))
             {
                 var encryptTexts = ReadAllLineSync(sr);
-                dynamics = new T[encryptTexts.Length];
+                arraySync = new T[encryptTexts.Count];
                 
-                for (var i = 0; i < encryptTexts.Length; i++) 
-                    RemoveLineBreaks(ref encryptTexts[i]);
-
-                for (var i = 0; i < encryptTexts.Length; i++)
+                for (var i = 0; i < encryptTexts.Count; i++)
                 {
                     var encrypt = encryptTexts[i];
-                
+                    
                     if(encrypt.Length == 0)
                         continue;
                 
                     var decrypted = DecryptBuilder(encrypt);
-                    dynamics[i] = Deserialize(decrypted);
+                    arraySync[i] = Deserialize(decrypted);
                 }
             }
 
-            return dynamics;
+            return arraySync;
         }
 
         private static async UniTask<T> LoadAsynchronous(string fileName)
@@ -191,7 +185,7 @@ namespace UniSave
             if(!IsFileExist(fileName))
                 throw new DirectoryNotFoundException();
             
-            using (var sr = new StreamReader($"{Pass}{fileName}", encoding))
+            using (var sr = new StreamReader($"{Pass}{fileName}", Encoding))
             {
                 var encryptedList = await ReadAllLineAsync(sr);
                 var encrypted = encryptedList[0];
@@ -209,7 +203,7 @@ namespace UniSave
             
             var arrayAsync = new List<T>();
             
-            using (var sr = new StreamReader($"{Pass}{fileName}", encoding))
+            using (var sr = new StreamReader($"{Pass}{fileName}", Encoding))
             {
                 foreach (var encrypted in await ReadAllLineAsync(sr))
                 {
@@ -264,7 +258,7 @@ namespace UniSave
             CreateOrIgnoreDirectory();
             CreateOrIgnoreFile(fileName);
             
-            using (var stream = new StreamWriter($"{Pass}{fileName}",false,encoding))
+            using (var stream = new StreamWriter($"{Pass}{fileName}",false,Encoding))
             {
                 stream.Write("");
             }
@@ -275,7 +269,7 @@ namespace UniSave
             CreateOrIgnoreDirectory();
             CreateOrIgnoreFile(fileName);
             
-            using (var stream = new StreamWriter($"{Pass}{fileName}",false,encoding)) 
+            using (var stream = new StreamWriter($"{Pass}{fileName}",false,Encoding)) 
                 await stream.WriteAsync("");
         }
 
@@ -306,6 +300,19 @@ namespace UniSave
         
         public static bool IsFileExist(string fileName) => File.Exists($"{Pass}{fileName}");
         public static bool IsDirectoryExist() => Directory.Exists(Pass);
+        
+        public static T GetOrDefault(string fileName) =>
+            IsFileExist(fileName) ? LoadSync(fileName) : default;
+        
+        public static T[] GetOrDefault(string fileName, int initializeCount) => 
+            IsFileExist(fileName) ? LoadArraySync(fileName) : new T[initializeCount];
+        
+        public static async UniTask<T> GetOrDefaultAsync(string fileName)=>
+            IsFileExist(fileName) ? await LoadAsynchronous(fileName) : default;
+
+        public static async UniTask<IReadOnlyList<T>> GetOrDefaultAsync(string fileName, int initializeCount) => 
+            IsFileExist(fileName) ? await LoadArrayAsynchronous(fileName) : new T[initializeCount];
+        
 
         private static byte[] Serialize(T type) => JsonSerializer.Serialize(type);
         private static T Deserialize(byte[] bytes) => JsonSerializer.Deserialize<T>(bytes);
@@ -352,22 +359,16 @@ namespace UniSave
             #endif
         }
 
-        private static void RemoveLineBreaks(ref string str)
-        {
-            if (str.EndsWith("\n"))
-                str = str.Substring(0, str.Length - 2);
-        }
-
-        private static string[] ReadAllLineSync(TextReader sr)
+        private static List<string> ReadAllLineSync(TextReader sr)
         {
             var value = sr.ReadToEnd();
             var sentences = new List<string>();
             int position;
             var start = 0;
-
+            
             do
             {
-                position = value.IndexOf(End, start);
+                position = value.IndexOf(End, start, StringComparison.Ordinal);
                 
                 if (position < 0)
                     continue;
@@ -376,10 +377,10 @@ namespace UniSave
                 start = position + 1;
             } while (position > 0);
 
-            return sentences.ToArray();
+            return sentences;
         }
         
-        private static async UniTask<string[]> ReadAllLineAsync(TextReader sr)
+        private static async UniTask<List<string>> ReadAllLineAsync(TextReader sr)
         {
             var value = await sr.ReadToEndAsync();
             var sentences = new List<string>();
@@ -388,7 +389,7 @@ namespace UniSave
 
             do
             {
-                position = value.IndexOf(End, start);
+                position = value.IndexOf(End, start, StringComparison.Ordinal);
                 
                 if (position < 0)
                     continue;
@@ -397,20 +398,8 @@ namespace UniSave
                 start = position + 1;
             } while (position > 0);
 
-            return sentences.ToArray();
+            return sentences;
         }
-
-        public static T GetOrDefault(string FileName) =>
-            IsFileExist(FileName) ? Load(FileName) : default;
-        
-        public static T[] GetOrDefault(string FileName,int initializeCount) => 
-            IsFileExist(FileName) ? LoadArray(FileName) : new T[initializeCount];
-        
-        public static async UniTask<T> GetOrDefaultAsync(string FileName)=>
-            IsFileExist(FileName) ? await LoadAsync(FileName) : default;
-
-        public static async UniTask<IReadOnlyList<T>> GetOrDefaultAsync(string FileName,int initializeCount) => 
-            IsFileExist(FileName) ? await LoadArrayAsync(FileName) : new T[initializeCount];
         
         #endregion
         
