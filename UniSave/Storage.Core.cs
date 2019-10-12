@@ -13,7 +13,7 @@ using Utf8Json;
 
 namespace UniSave
 {
-    public static class Storage<T> where T : struct
+    public static class Storage<T>
     {
         private static string PassWord => "projekt";
         private static string Pass => $"{Application.dataPath}/{Application.productName}/";

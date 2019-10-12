@@ -6,6 +6,7 @@ using System.Text;
 using Utf8Json.Formatters.Internal;
 using Utf8Json.Internal;
 using System.Text.RegularExpressions;
+using Version = _Script.Data.Value_Object.Version;
 
 #if NETSTANDARD
 using System.Dynamic;

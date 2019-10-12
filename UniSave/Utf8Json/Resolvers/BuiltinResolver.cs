@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using Utf8Json.Formatters;
+using Version = _Script.Data.Value_Object.Version;
 
 namespace Utf8Json.Resolvers
 {

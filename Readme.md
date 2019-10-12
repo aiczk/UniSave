@@ -2,7 +2,7 @@
 
 UniSave is an asset that allows you to easily save and load values.
 
-  - Supports structure encryption/decryption.
+  - Supports Value types and Reference types encryption/decryption.
   - The structure array can be preserved.
   - It supports asynchronous loading.
   - Can save most of the structures used in Unity.
